@@ -1,0 +1,55 @@
+class Memory:
+
+    def __init__(self, window, tick_max):
+        self.window = window
+        self.memory = {}
+        self.tick_max = tick_max
+
+    def access(self, page):
+        self.tick()
+        if page in self.memory:
+            self.memory[page] = 0
+            print('Access {} => Hit; memory={}'.format(page, str(self)))
+        elif len(self.memory) < self.window:
+            self.memory[page] = 0
+            print('Access {} => Miss, free page available; memory={}'.format(
+                page, str(self)))
+        else:
+            self._swap_page(page)
+
+    def tick(self):
+        for pidx, tick in self.memory.items():
+            self.memory[pidx] = tick+1
+
+    def _swap_page(self, page):
+        max_tick = -1
+        max_pidx = 0
+        for pidx, tick in self.memory.items():
+            if tick > self.tick_max:
+                del self.memory[pidx]
+                self.memory[page] = 0
+                print('Access {} => Miss, outdated page available; swap out {}; memory={}'.format(
+                    page, pidx, str(self)))
+                return
+            elif tick > max_tick:
+                max_tick = tick
+                max_pidx = pidx
+        assert max_tick != -1, max_tick
+        del self.memory[max_pidx]
+        self.memory[page] = 0
+        print('Access {} => Miss, forcely swap out {}; memory={}'.format(
+            page, max_pidx, str(self)))
+
+    def __str__(self):
+        return ','.join(['{}({})'.format(p, t) for p, t in self.memory.items()])
+
+
+def main():
+    pages = [0,1,2,3,4,3,0,4,2,3,2,1,2]
+    memory = Memory(4, 3)
+    for p in pages:
+        memory.access(p)
+
+
+if __name__ == '__main__':
+    main()
